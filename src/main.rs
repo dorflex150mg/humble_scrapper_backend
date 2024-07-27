@@ -17,12 +17,7 @@ use api::agent::{
 };
 
 
-#[derive(Clone, Serialize, Deserialize)] //to/from json
-struct Agent {
-    name: String,
-}
-
-type SimDb = Arc<Mutex<DbHandle>>;
+type Db = Arc<Mutex<DbHandle>>;
 
 //#[actix_web::get("/hello/{id}")]
 //async fn hello(user_id: web::Path<u64>) -> impl Responder { //formats from endpoint into Responder
@@ -40,17 +35,16 @@ async fn main() -> std::io::Result<()> {
     let ip = "127.0.0.1";
     println!("Running on {port}");
 
-    let sim_db: SimDb = Arc::new(Mutex::new(DbHandle::new(String::from("scraper.db")).unwrap()));
-
+    let db: Db = Arc::new(Mutex::new(DbHandle::new(String::from("scraper.db")).unwrap()));
     HttpServer::new(move || { 
         //let logger = Logger::default();
-        let app_data = web::Data::new(sim_db.clone()); //a struct that represents data
+        let db_handle = web::Data::new(db.clone()); //a struct that represents data
         App::new()
             //.wrap(logger)
             //.service(hello) // enrolls a function into the app
             .service(create_agent)
             .service(get_agents)
-            .app_data(app_data) //enrolls data "type" into the app
+            .app_data(db_handle) //enrolls data "type" into the app
     }) 
         .bind((ip, port))?
         .run()

@@ -65,16 +65,16 @@ impl DbHandle {
         })
     }
 
-    pub fn push_item(&self, id: String, name: String, price: f64) -> Result<(), rusqlite::Error> {
+    pub fn push_item(&self, id: String, name: String, price: f64) -> Result<String, rusqlite::Error> {
         self.connection.execute(
             &format!("INSERT INTO item(id, name, price) VALUES({}, {}, {}));",
-                id,
+                id.clone(),
                 name,
                 price,
             ),
             [],
         )?;
-        Ok(())
+        Ok(id)
     }
 
     pub fn get_item(&self, id: String) -> Result<Item, QuerryError> {
@@ -89,25 +89,27 @@ impl DbHandle {
         })
     }
 
-    pub fn push_agent(&self, id: String) -> Result<(), rusqlite::Error> {
+    pub fn push_agent(&self, id: String) -> Result<String, rusqlite::Error> {
         self.connection.execute(
-            &format!("INSERT INTO agent(id) VALUES({})", id),
+            &format!("INSERT INTO agent(id) VALUES({})", id.clone()),
             [],
         )?;
-        Ok(())
+        Ok(id)
     }
         
-    pub fn get_agents(&self) -> Result<Vec<Agent>, rusqlite::Error> {
+    pub fn get_agents(&self) -> Result<Vec<Agent>, QuerryError> {
         let mut query = self.connection.prepare("SELECT id FROM agent")?;
         let agents_iter = query.query_map([], |row| {
             Ok(Agent {
                 id: row.get(0)?
               })
         })?;
-        Ok(agents_iter.map(|maybe_agent| {
-            maybe_agent.unwrap()
-        }).collect())
-
+        let mut agents: Vec<Agent> = vec![];
+        for maybe_agent in agents_iter {
+            let agent = maybe_agent.or(Err(EmptyTableError::NoAgents))?;
+            agents.push(agent);
+        }
+        Ok(agents)
     }
 
 }

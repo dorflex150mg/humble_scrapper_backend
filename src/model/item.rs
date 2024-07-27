@@ -1,5 +1,7 @@
 use uuid::Uuid;
+use serde::{Serialize, Deserialize};
 
+#[derive(Serialize)]
 pub struct Item {
     pub id: String,
     pub name: String,
