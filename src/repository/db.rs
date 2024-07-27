@@ -66,32 +66,35 @@ impl DbHandle {
     }
 
     pub fn push_item(&self, id: String, name: String, price: f64) -> Result<String, rusqlite::Error> {
-        self.connection.execute(
-            &format!("INSERT INTO item(id, name, price) VALUES({}, {}, {}));",
+        let request = &format!("INSERT INTO item(id, name, price) VALUES(\"{}\", \"{}\", {});",
                 id.clone(),
                 name,
                 price,
-            ),
+            );
+        println!("request:{request}");
+        
+        self.connection.execute(request,
             [],
         )?;
         Ok(id)
     }
 
     pub fn get_item(&self, id: String) -> Result<Item, QuerryError> {
+        println!("querying id: {}", id);
         let mut query = self.connection.prepare("SELECT name, price FROM item WHERE id = ?1;")?;
         let mut rows = query.query(rusqlite::params![id])?;
         let maybe_row = rows.next()?;
         let row = maybe_row.ok_or(EmptyTableError::NoItems)?;
         Ok(Item {
             id, 
-            name: row.get(1)?,
-            price: row.get(2)?,
+            name: row.get(0)?,
+            price: row.get(1)?,
         })
     }
 
     pub fn push_agent(&self, id: String) -> Result<String, rusqlite::Error> {
         self.connection.execute(
-            &format!("INSERT INTO agent(id) VALUES({})", id.clone()),
+            &format!("INSERT INTO agent(id) VALUES(\"{}\")", id.clone()),
             [],
         )?;
         Ok(id)

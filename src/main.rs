@@ -10,6 +10,8 @@ mod repository;
 mod model;
 
 use crate::repository::db::DbHandle;
+use crate::api::item::post_item;
+use crate::api::item::get_item;
 
 use api::agent::{
     create_agent,
@@ -42,6 +44,8 @@ async fn main() -> std::io::Result<()> {
         App::new()
             //.wrap(logger)
             //.service(hello) // enrolls a function into the app
+            .service(post_item)
+            .service(get_item)
             .service(create_agent)
             .service(get_agents)
             .app_data(db_handle) //enrolls data "type" into the app

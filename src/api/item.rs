@@ -45,9 +45,22 @@ pub struct ItemId {
     item_global_id: u64,
 }
 
-#[get("/item/{path_id}")]
-pub async fn get_item(db: web::Data<Arc<Mutex<DbHandle>>>, path_id: web::Path<String>) -> Result<Json<Item>, DbItemError> {
-    match db.lock().unwrap().get_item(path_id.to_string()) { 
+#[derive(Deserialize)]
+pub struct SubmitItem {
+    name: String,
+    price: f64,
+}
+
+#[derive(Deserialize)]
+pub struct GetItem{
+    id: String
+}
+
+
+#[get("/item")]
+pub async fn get_item(db: web::Data<Arc<Mutex<DbHandle>>>, request: Json<GetItem>) -> Result<Json<Item>, DbItemError> {
+    println!("item: {}", request.id.clone());
+    match db.lock().unwrap().get_item(request.id.clone()) { 
         Ok(i) => {
             Ok(Json(
                 Item {
@@ -62,12 +75,12 @@ pub async fn get_item(db: web::Data<Arc<Mutex<DbHandle>>>, path_id: web::Path<St
     }
 }
 
-#[post("/add_item/{name}/{price}")]
+#[post("/add_item")]
 pub async fn post_item(db: web::Data<Arc<Mutex<DbHandle>>>, 
-        name: web::Path<String>, 
-        price: web::Path<String>) -> Result<Json<String>, DbItemError> {
-
-    let item = Item::new(name.to_string(), price.to_string().parse::<f64>().unwrap());
+        request: Json<SubmitItem>,
+        //name: web::Path<String>, 
+        ) -> Result<Json<String>, DbItemError> {
+    let item = Item::new(request.name.clone(), request.price);
     match db.lock().unwrap().push_item(item.id, item.name, item.price) {
         Ok(id) => Ok(Json(id)),
         Err(e) => Err(DbItemError::PushFailed(QuerryError::RusqliteError(e))),
