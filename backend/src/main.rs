@@ -30,9 +30,7 @@ type Db = Arc<Mutex<DbHandle>>;
 async fn main() -> std::io::Result<()> {
     std::env::set_var("RUST_LOG", "debug");
     std::env::set_var("RUST_BACKTRACE", "1");
-
     env_logger::init();
-
     let port = 8080;
     let ip = "127.0.0.1";
     println!("Running on {port}");

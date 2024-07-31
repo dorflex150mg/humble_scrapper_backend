@@ -1,7 +1,21 @@
 use reqwest::Client;
 
+mod agent;
+
+use crate::agent::agent::enroll_agent;
+
+const ip: &str = "http://127.0.0.1:8080";
+
 #[tokio::main]
 async fn main() {
+
+    let future_id = enroll_agent(ip); 
+    let response = future_id.await;
+    let id = match response.unwrap().text().await {
+        Ok(i) => {println!("id: {:?}", i.clone()); i},
+        Err(e) => panic!("Failed to read reponse text with: {}", e),
+    };
+
     let client = Client::new();
 
     let response = match client.get("https://scrapeme.live/shop")
