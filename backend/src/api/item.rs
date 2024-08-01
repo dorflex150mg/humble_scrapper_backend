@@ -48,7 +48,7 @@ pub struct ItemId {
 #[derive(Deserialize)]
 pub struct SubmitItem {
     name: String,
-    price: f64,
+    price: String,
 }
 
 #[derive(Deserialize)]
@@ -80,7 +80,9 @@ pub async fn post_item(db: web::Data<Arc<Mutex<DbHandle>>>,
         request: Json<SubmitItem>,
         //name: web::Path<String>, 
         ) -> Result<Json<String>, DbItemError> {
-    let item = Item::new(request.name.clone(), request.price);
+    println!("price: {}", &request.price);
+    let price = request.price.parse::<f64>().unwrap();
+    let item = Item::new(request.name.clone(), price);
     match db.lock().unwrap().push_item(item.id, item.name, item.price) {
         Ok(id) => Ok(Json(id)),
         Err(e) => Err(DbItemError::PushFailed(QuerryError::RusqliteError(e))),
