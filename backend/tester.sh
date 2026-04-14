@@ -1,7 +1,7 @@
 echo "Add item: "
 result=$(curl --header "Content-Type: application/json" \
 	--request POST \
-	--data '{"name":"myitem", "price":125.1}' \
+	--data '{"name":"myitem", "price":"125.1"}' \
 	127.0.0.1:8080/add_item)
 echo "result: "$result
 data='{"id":'$result'}'
